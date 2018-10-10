@@ -63,6 +63,28 @@ function startPoll(infos) {
   sendMessageToContentScript({type:'start', payload:infos}, function(response){
   });
 }
+function stopPoll(infos) {
+  // See https://developer.chrome.com/extensions/tabs#method-executeScript.
+  // chrome.tabs.executeScript allows us to programmatically inject JavaScript
+  // into a page. Since we omit the optional first argument "tabId", the script
+  // is inserted into the active tab of the current window, which serves as the
+  // default.
+  
+  sendMessageToContentScript({type:'stop'}, function(response){
+  });
+}
+function getData(infos) {
+  // See https://developer.chrome.com/extensions/tabs#method-executeScript.
+  // chrome.tabs.executeScript allows us to programmatically inject JavaScript
+  // into a page. Since we omit the optional first argument "tabId", the script
+  // is inserted into the active tab of the current window, which serves as the
+  // default.
+  
+  sendMessageToContentScript({type:'get'}, function(response){
+  });
+}
+
+
 
 /**
  * Gets the saved background color for url.
@@ -106,6 +128,8 @@ function saveInputValue(url, infos) {
 document.addEventListener('DOMContentLoaded', () => {
   getCurrentTabUrl((url) => {
     var startBtn = document.getElementById('start');
+    var stopBtn = document.getElementById('stop');
+    var getBtn = document.getElementById('get');
     var codeInput = document.getElementById('code');
     var numberInput = document.getElementById('number');
     var intervalInput = document.getElementById('number');
@@ -114,7 +138,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // value, if needed.
     getSaved(url, (infos) => {
       if (infos) {
-        startPoll(infos);
         codeInput.value = infos.code;
         numberInput.value = infos.number;
         intervalInput.value = infos.intervalInput;
@@ -136,6 +159,13 @@ document.addEventListener('DOMContentLoaded', () => {
         intervalInput: intervalInput.value
       });
     });
+    stopBtn.addEventListener('click', () => {
+      stopPoll();
+    });
+    getBtn.addEventListener('click', () => {
+      getData();
+    });
+    
   });
 });
 
@@ -151,24 +181,36 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse){
   // console.log(sender.tab ?"from a content script:" + sender.tab.url :"from the extension");
   if(request.type == 'refresh') {
     var payload = request.payload
-    var trDom = document.querySelectorAll('#' + payload.code)
-    if(trDom.length > 0){
-      console.log(payload, trDom[0].querySelectorAll('td.time')[0])
-      trDom[0].querySelectorAll('td.stock')[0].innerHTML = payload.stock
-      trDom[0].querySelectorAll('td.time')[0].innerHTML = payload.time
-    }else{
-      document.querySelectorAll('#result table tbody')[0].appendChild(createTr(payload))
-    }
+    payload.forEach(function(info){
+      var trDom = document.querySelectorAll('#' + 'id' + info.id)
+      if(trDom.length > 0){
+        trDom[0].querySelectorAll('td.stock')[0].innerHTML = info.stock
+        trDom[0].querySelectorAll('td.time')[0].innerHTML = info.time
+        trDom[0].querySelectorAll('td.number')[0].innerHTML = info.number
+        if(parseInt(info.stock) > parseInt(info.number)){
+          trDom[0].querySelectorAll('td.stock')[0].classList.add('green')
+          trDom[0].querySelectorAll('td.stock')[0].classList.remove('red')
+        }else{
+          trDom[0].querySelectorAll('td.stock')[0].classList.add('red')
+          trDom[0].querySelectorAll('td.stock')[0].classList.remove('green')
+        }
+      }else{
+        document.querySelectorAll('#result table tbody')[0].appendChild(createTr(info))
+      }
+    })
   }
 });
 function createTr(info){
   var tr = document.createElement("tr")
-  tr.id = info.code
+  tr.id = 'id' + info.id
   tr.innerHTML = 
     '<td class="name">' +
       info.name +
     '</td>' +
-    '<td class="stock">' +
+    '<td class="number">' +
+      info.number +
+    '</td>' +
+    '<td class="stock ' +( parseInt(info.stock) > parseInt(info.number) ? 'green' : 'red' )+ '">' +
       info.stock +
     '</td>' +
     '<td class="time">' +

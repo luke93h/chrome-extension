@@ -21,5 +21,6 @@
   "content_scripts":[{
     "matches": ["http://smart.supor.com:9097/*","https://smart.supor.com:9097/*"],
     "js": ["js/content.js"]
-  }]
+  }],
+  "web_accessible_resources": [ "*.mp3" ]
 }
