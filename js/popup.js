@@ -137,6 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Load the saved background color for this page and modify the dropdown
     // value, if needed.
     getSaved(url, (infos) => {
+      getData()
       if (infos) {
         codeInput.value = infos.code;
         numberInput.value = infos.number;
@@ -162,10 +163,6 @@ document.addEventListener('DOMContentLoaded', () => {
     stopBtn.addEventListener('click', () => {
       stopPoll();
     });
-    getBtn.addEventListener('click', () => {
-      getData();
-    });
-    
   });
 });
 
