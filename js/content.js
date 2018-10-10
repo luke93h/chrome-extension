@@ -35,7 +35,6 @@
           var trs = _document.querySelectorAll('#tableList tr')
           Array.prototype.forEach.call(trs, function(tr, index){
             var list = tr.querySelectorAll('td')
-            console.log(tr,list)
             if(list.length < 3){
               return
             }
